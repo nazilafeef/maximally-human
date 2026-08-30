@@ -256,26 +256,20 @@ const PRERENDER_CSS = [
   ''
 ].join('\n');
 
-/* The pre-render is real content for crawlers and for readers without JS.
-   With JS it would be painted and then replaced by the engine's own render,
-   which cost 0.24 of cumulative layout shift on a throttled phone. This tiny
-   script runs the instant the markup is parsed — before the heavy modules
-   below it — and hides the pre-render only where scripting is available:
+/* The pre-render stays visible on purpose.
 
-     · a crawler that does not execute JS still sees the whole document
-     · a reader with JS off still sees the whole document
-     · a reader with JS on never paints it, so there is nothing to shift
+   Hiding it before the engine boots removes the layout shift — measured, CLS
+   went 0.242 to 0 — but it also removes the early paint, and first contentful
+   paint went 3.6s to 4.7s with largest contentful paint 3.6s to 6.2s on a
+   throttled phone. Lighthouse scored that trade lower, and for a 150-page
+   reading document a reader seeing text three seconds sooner is worth more
+   than a shift metric on a one-time boot transition that replaces text with
+   the same text.
 
-   The engine clears the node outright a moment later; this only wins the race
-   against first paint. */
-const PRERENDER_HIDE =
-  '<' + 'script data-cfasync="false">' +
-  '(function(){var p=document.getElementById("hos-prerender");if(p)p.hidden=true;})();' +
-  '<' + '/script>';
-
+   So it is left visible, and the shift is accepted. */
 const BODY = SHELL.replace(
   '<div id="hos-reader"></div>',
-  '<div id="hos-reader"><div id="hos-prerender">\n' + prerender + '\n</div>' + PRERENDER_HIDE + '</div>'
+  '<div id="hos-reader"><div id="hos-prerender">\n' + prerender + '\n</div></div>'
 );
 if (BODY === SHELL) throw new Error('pre-render injection point not found');
 
