@@ -93,7 +93,7 @@
     /* privacy opens in the overlay the reader already knows */
     document.getElementById('hos-privacy').onclick = function (e) {
       e.preventDefault();
-      HOS.openOverlay('Privacy', PRIVACY_HTML);
+      HOS.openOverlay('privacy', 'Privacy', PRIVACY_HTML);
     };
 
     /* and from the end of the document */
@@ -104,7 +104,7 @@
       a.className = 'hos-side-item';
       a.href = '#privacy';
       a.innerHTML = '<span class="hos-side-glyph">·</span><span>Privacy</span>';
-      a.onclick = function (e) { e.preventDefault(); HOS.openOverlay('Privacy', PRIVACY_HTML); };
+      a.onclick = function (e) { e.preventDefault(); HOS.openOverlay('privacy', 'Privacy', PRIVACY_HTML); };
     }
   }
 

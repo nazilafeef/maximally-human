@@ -33,7 +33,24 @@ let app        = read('hos-app.js');
 const storage   = read('hos-storage.js');
 const dataUI    = read('hos-data-ui.js');
 const mobile    = read('hos-mobile.js');
+const todayView = read('hos-today.js');
 const RESPONSIVE = require('./responsive.js')(CSS);
+
+/* Service worker registration. Deliberately never touches
+   beforeinstallprompt: add-to-home-screen stays something a reader finds if
+   they want it, never something they are prompted for. */
+const SW_REG = [
+  "(function () {",
+  "  if (!('serviceWorker' in navigator)) return;",
+  "  // isSecureContext covers https plus localhost and 127.0.0.1",
+  "  if (!window.isSecureContext) return;",
+  "  window.addEventListener('load', function () {",
+  "    navigator.serviceWorker.register('/sw.js').catch(function (e) {",
+  "      console.warn('[HOS] offline support unavailable', e);",
+  "    });",
+  "  });",
+  "})();"
+].join('\n');
 
 /* Cap the shell-wait retries so a missing anchor fails loudly instead of
    spinning forever. The shell is static now, so the first check should pass. */
@@ -104,10 +121,47 @@ const STORAGE_SHIM_UNUSED = [
   "})();"
 ].join('\n');
 
-/* ---------- 5. static pre-render of the document ---------- */
+/* ---------- 4b. re-anchor the writing fields ----------
+   26 placements used endOf(section), which stacks every field at the bottom of
+   its section rather than beside the instruction it belongs to. Inject an
+   explicit anchor after each instruction, then mount the field into it. */
 const sandbox = {};
 (function (window) { eval(sections); })(sandbox);
 const D = sandbox.HOS_DATA;
+
+const anchors = require('./anchors.js');
+const anchorRes = anchors.inject(D);
+if (anchorRes.missed.length) {
+  throw new Error('anchor injection missed: ' + anchorRes.missed.join(', '));
+}
+console.log('writing fields re-anchored:', Object.keys(anchorRes.map).length);
+
+// re-serialise the document with the anchors baked in
+const sectionsOut = 'window.HOS_DATA = ' + JSON.stringify(D) + ';\n';
+
+/* Rewrite each field's host as HOS_PLACES registers it. Wrapping the module
+   rather than editing 26 lines of hos-places.js keeps that file pristine and
+   makes an unmatched key fall back to its original placement. */
+const ANCHOR_PATCH =
+  '(function () {\n' +
+  '  var MAP = ' + JSON.stringify(anchorRes.map) + ';\n' +
+  '  var orig = window.HOS_PLACES;\n' +
+  '  if (!orig) return;\n' +
+  '  window.HOS_PLACES = function (HOS, A) {\n' +
+  '    var place = A.place;\n' +
+  '    A.place = function (spec) {\n' +
+  '      var id = MAP[spec.key];\n' +
+  '      if (id && document.getElementById(id)) {\n' +
+  '        spec.host = A.inNode(id);\n' +
+  '        spec.mode = "append";\n' +
+  '      }\n' +
+  '      return place(spec);\n' +
+  '    };\n' +
+  '    try { return orig(HOS, A); } finally { A.place = place; }\n' +
+  '  };\n' +
+  '})();';
+
+/* ---------- 5. static pre-render of the document ---------- */
 const ids = Object.keys(D.html);
 
 /* Strip presentation down to semantics: no inline styles, no SVG, no widget
@@ -177,6 +231,14 @@ const HEAD = [
   '<meta name="twitter:creator" content="@nazilafeef">',
   '<meta name="twitter:image" content="https://human.malebay.com/cover.png">',
   '<meta name="author" content="Nazil Afeef">',
+  '<link rel="manifest" href="/manifest.webmanifest">',
+  '<meta name="theme-color" content="#F7F4EE" media="(prefers-color-scheme: light)">',
+  '<meta name="theme-color" content="#16171A" media="(prefers-color-scheme: dark)">',
+  '<link rel="icon" href="/icon-192.png" sizes="192x192">',
+  '<link rel="apple-touch-icon" href="/icon-192.png">',
+  '<meta name="apple-mobile-web-app-capable" content="yes">',
+  '<meta name="apple-mobile-web-app-status-bar-style" content="default">',
+  '<meta name="apple-mobile-web-app-title" content="Maximally Human">',
   '<link rel="preconnect" href="https://fonts.googleapis.com">',
   '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>',
   '<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">',
@@ -209,13 +271,16 @@ const E = '<' + '/script>';
 const html = '<!DOCTYPE html>\n<html lang="en">\n<head>\n' + HEAD +
   '\n<style>' + CSS + PRERENDER_CSS + RESPONSIVE + '</style>\n</head>\n<body>\n' + BODY + '\n' +
   S + storage + E + '\n' +
-  S + sections + E + '\n' +
+  S + sectionsOut + E + '\n' +
   S + widgets + E + '\n' +
   S + write + E + '\n' +
   S + places + E + '\n' +
+  S + ANCHOR_PATCH + E + '\n' +
   S + dataUI + E + '\n' +
   S + mobile + E + '\n' +
+  S + todayView + E + '\n' +
   S + app + E + '\n' +
+  S + SW_REG + E + '\n' +
   '</body>\n</html>\n';
 
 fs.mkdirSync(OUT, { recursive: true });

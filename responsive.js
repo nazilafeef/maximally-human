@@ -348,6 +348,138 @@ ${cssFloorRules(baseCss, 14, 12, 4)}
     }
   }
 
+  /* ─────────── Today view ───────────
+     Built from the existing token set only — no new colours, no new design
+     language, and deliberately nothing that scores or congratulates. */
+  .hos-today-entry {
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 8px; padding-bottom: 10px;
+    font-weight: 600; color: var(--accent);
+  }
+  .hos-today-entry .hos-side-glyph { color: var(--accent); }
+  #hos-today { font-family: 'Spectral', Georgia, serif; color: var(--ink); }
+  .hos-today-head { margin-bottom: 18px; }
+  .hos-today-date {
+    font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+    letter-spacing: 0.2em; text-transform: uppercase; color: var(--faint);
+  }
+  .hos-today-card {
+    border-top: 1px solid var(--rule);
+    padding: 15px 0 17px;
+  }
+  .hos-today-k {
+    font-family: 'IBM Plex Mono', monospace; font-size: 9.5px;
+    letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent);
+    margin-bottom: 8px; display: flex; gap: 10px; align-items: baseline;
+  }
+  .hos-today-done {
+    font-size: 9px; letter-spacing: 0.12em; color: var(--faint);
+    text-transform: none;
+  }
+  .hos-today-title {
+    font-family: 'Spectral', Georgia, serif; font-size: 25px;
+    line-height: 1.15; margin-bottom: 6px;
+  }
+  .hos-today-note {
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 12.5px;
+    line-height: 1.55; color: var(--mute); margin: 4px 0 0;
+  }
+  .hos-today-empty {
+    font-family: 'Spectral', Georgia, serif; font-size: 15px;
+    line-height: 1.55; color: var(--ink-2); margin: 0 0 8px;
+  }
+  .hos-today-go {
+    margin-top: 10px; padding: 7px 0;
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 12.5px;
+    color: var(--accent); text-align: left; display: block;
+  }
+  .hos-today-go:hover { color: var(--ink); }
+  .hos-today-row {
+    display: flex; gap: 12px; align-items: baseline; width: 100%;
+    text-align: left; padding: 8px 0; border-top: 1px solid var(--rule-2);
+  }
+  .hos-today-row:first-of-type { border-top: none; }
+  .hos-today-n {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+    color: var(--accent); flex: none; width: 1.6em;
+  }
+  .hos-today-row b { font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; font-weight: 600; display: block; }
+  .hos-today-row em { font-family: 'Spectral', Georgia, serif; font-size: 13.5px; color: var(--mute); font-style: italic; }
+  .hos-today-rule {
+    font-family: 'Spectral', Georgia, serif; font-size: 17px;
+    line-height: 1.5; margin: 0; color: var(--ink);
+  }
+  .hos-today-line {
+    font-family: 'Spectral', Georgia, serif; font-size: 14.5px;
+    line-height: 1.5; margin: 0 0 5px; color: var(--ink-2);
+  }
+  .hos-today-line span {
+    display: block; font-family: 'IBM Plex Mono', monospace; font-size: 9px;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--faint);
+  }
+  .hos-today-plan {
+    font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;
+    line-height: 1.5; padding: 8px 10px; background: var(--paper-2);
+    border-left: 2px solid var(--accent); margin: 8px 0 0;
+  }
+  .hos-today-field { display: block; margin-bottom: 9px; }
+  .hos-today-field span {
+    display: block; font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 12px; color: var(--mute); margin-bottom: 3px;
+  }
+  .hos-today-field textarea {
+    width: 100%; resize: none; overflow: hidden;
+    font-family: 'Spectral', Georgia, serif; font-size: 15px; line-height: 1.5;
+    color: var(--ink); background: var(--paper); padding: 7px 9px;
+    border: 1px solid var(--rule); border-radius: 2px;
+  }
+  .hos-today-field textarea:focus { outline: none; border-color: var(--accent); }
+  .hos-today-actions { display: flex; gap: 12px; align-items: center; margin-top: 10px; }
+  .hos-today-save {
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 12.5px; font-weight: 600;
+    color: var(--paper); background: var(--accent);
+    padding: 8px 14px; border-radius: 2px; min-height: 38px;
+  }
+  .hos-today-saved {
+    font-family: 'IBM Plex Mono', monospace; font-size: 9.5px;
+    letter-spacing: 0.1em; color: var(--faint);
+  }
+  .hos-today-start { padding: 8px 0 18px; }
+  .hos-today-start p { font-family: 'Spectral', Georgia, serif; font-size: 17px; margin: 0 0 8px; }
+  .hos-today-offer {
+    display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+    padding: 9px 11px; margin-bottom: 12px;
+    background: var(--paper-2); border-left: 2px solid var(--accent);
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 12.5px; color: var(--ink-2);
+  }
+  .hos-today-offer button {
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 12.5px;
+    color: var(--accent); min-height: 34px;
+  }
+  .hos-today-offer button[data-dismiss-offer] { color: var(--faint); }
+  .hos-today-toggle, .hos-today-time {
+    display: flex; gap: 9px; align-items: center; margin-bottom: 7px;
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 13px; color: var(--ink-2);
+  }
+  .hos-today-toggle input { width: 18px; height: 18px; flex: none; }
+  .hos-today-time input {
+    font-family: 'IBM Plex Mono', monospace; font-size: 13px;
+    padding: 5px 7px; border: 1px solid var(--rule); background: var(--paper); color: var(--ink);
+  }
+  @media (max-width: 600px) {
+    .hos-today-title { font-size: 23px; }
+    .hos-today-note { font-size: 14px; }
+    .hos-today-k { font-size: 12px; }
+    .hos-today-line span, .hos-today-date { font-size: 12px; }
+    .hos-today-row b { font-size: 15px; }
+    .hos-today-row em { font-size: 15px; }
+    .hos-today-go, .hos-today-save, .hos-today-offer, .hos-today-offer button { font-size: 14px; }
+    .hos-today-go { min-height: 44px; }
+    .hos-today-save { min-height: 44px; }
+    .hos-today-field span { font-size: 13px; }
+    .hos-today-plan { font-size: 14px; }
+  }
+
   /* ─────────── the storage warning strip ─────────── */
   .hos-storage-warn {
     display: block; margin: 10px 0 0; padding: 9px 11px;

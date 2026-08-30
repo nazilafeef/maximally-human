@@ -1,0 +1,26 @@
+{
+  "name": "Maximally Human — The Human Operating System v2.0",
+  "short_name": "Maximally Human",
+  "description": "A framework for capability, health, wealth, character and meaning, where every claim carries an honest label saying how well it is supported.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#F7F4EE",
+  "theme_color": "#F7F4EE",
+  "lang": "en",
+  "categories": ["books", "education", "productivity"],
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Today",
+      "short_name": "Today",
+      "description": "What you are doing today",
+      "url": "/#today"
+    }
+  ]
+}
