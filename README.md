@@ -15,10 +15,13 @@ dependencies and no external requests other than Google Fonts. Everything —
 markup, CSS, the whole document, and the reading engine — is inlined.
 
 ```
-index.html    the entire reader: shell, styles, document, engine
-robots.txt    open to everyone, AI crawlers named and allowed explicitly
-sitemap.xml   the single canonical URL
-cover.png     1200×630 Open Graph card
+index.html            the entire reader: shell, styles, document, engine
+robots.txt            open to everyone, AI crawlers named and allowed
+sitemap.xml           the single canonical URL
+cover.png             1200×630 Open Graph card
+manifest.webmanifest  installable app metadata
+sw.js                 offline cache
+icon-192/512.png      app icons
 ```
 
 ## Structure of index.html
@@ -45,10 +48,43 @@ which it clears on boot. The real text is therefore in the served HTML
 response, visible to crawlers and to readers without JavaScript, and is
 replaced by the full interactive render the moment the engine starts.
 
+### Responsive
+
+The document carries its sizing inline — 341 `font-size:17px` declarations
+and 261 `grid-template-columns` — so ordinary selectors lose on specificity.
+The responsive layer targets the style attribute directly, the same technique
+the file already uses for dark-mode remapping, and generates its class-level
+overrides from the stylesheet rather than transcribing 123 selectors.
+
+Breakpoints: 480 / 600 / 768 / 900 / 901–1100 / 1360, plus short landscape.
+Body text ≥17px on phones and ≥18px on tablets, readable text ≥14px, chrome
+≥12px, every input 16px so iOS does not zoom on focus, every target ≥44px.
+Inline grids stack to one column below 900px so the tables read without
+horizontal scrolling.
+
+One subtlety worth keeping: a bare `1fr` track is `minmax(auto, 1fr)`, and
+that auto minimum is min-content — one wide grid was sizing the whole column
+to 594px inside a 375px viewport. Because `html`/`body` are `overflow:hidden`
+the excess was clipped rather than scrolled, so `scrollWidth` reported nothing
+while text was visibly cut off. The fix is `minmax(0, 1fr)`.
+
+### Today
+
+A first sidebar item above the document, assembling one screen from state the
+reader has already set: mode and stage, the ninety-day phase and day number,
+the laws they are working on, tonight's audit and prosperity ledger fillable
+inline, their open WOOP, decisions past review, and one rule a day drawn
+preferentially from the ones marked shaky. Entries written here go into the
+same practice logs the document's own instruments use.
+
+No streaks, points, badges, levels, celebrations or progress-as-score. The
+document argues against motivational scaffolding, and an app contradicting its
+own text would be worse than no app.
+
 ### Persistence
 
 Reading position, bookmarks, instrument entries and everything typed into the
-workbook are held in `localStorage` under the `mh:` prefix, batched into three
+workbook are held in IndexedDB (`maximally-human`), falling back to `localStorage` then memory, batched into three
 keys (`hos:reader`, `hos:practice`, `hos:workbook`). Nothing leaves the
 browser. If `localStorage` is unavailable the same interface degrades to
 in-memory for the session.
