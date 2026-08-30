@@ -67,9 +67,28 @@ node build.js
 ## Deployment
 
 Cloudflare Pages, connected to this repo. No build command; the output
-directory is the repository root; production branch `main`. A Configuration
-Rule scoped to `human.malebay.com` disables Rocket Loader, which would
-otherwise rewrite the inline scripts the reader is made of.
+directory is the repository root; production branch `main`.
+
+### Rocket Loader
+
+Rocket Loader is on zone-wide for `malebay.com` and rewrites script types.
+The reader is six inline scripts that must run in a strict dependency order,
+so any deferral or reordering breaks it. Every script tag therefore carries
+`data-cfasync="false"`, Cloudflare's documented per-script opt-out, which
+makes the page correct regardless of the zone setting. A Configuration Rule
+scoped to `hostname eq "human.malebay.com"` would be belt-and-braces but is
+not required for correctness.
+
+### AI Crawl Control
+
+The zone has AI Crawl Control enabled, which injects a managed `robots.txt`
+block *above* this repo's file, with `Disallow: /` for GPTBot, ClaudeBot,
+CCBot, Google-Extended, Bytespider, Amazonbot, Applebot-Extended and
+meta-externalagent. Because robots.txt resolves the first matching
+user-agent group, those directives win over the permissive ones here. The
+feature is zone-wide and dashboard-only, with no per-hostname scope, so
+`robots.txt` in this repo states the intent but the zone setting decides the
+outcome.
 
 ## Support
 
