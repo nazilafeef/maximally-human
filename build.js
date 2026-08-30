@@ -256,9 +256,26 @@ const PRERENDER_CSS = [
   ''
 ].join('\n');
 
+/* The pre-render is real content for crawlers and for readers without JS.
+   With JS it would be painted and then replaced by the engine's own render,
+   which cost 0.24 of cumulative layout shift on a throttled phone. This tiny
+   script runs the instant the markup is parsed — before the heavy modules
+   below it — and hides the pre-render only where scripting is available:
+
+     · a crawler that does not execute JS still sees the whole document
+     · a reader with JS off still sees the whole document
+     · a reader with JS on never paints it, so there is nothing to shift
+
+   The engine clears the node outright a moment later; this only wins the race
+   against first paint. */
+const PRERENDER_HIDE =
+  '<' + 'script data-cfasync="false">' +
+  '(function(){var p=document.getElementById("hos-prerender");if(p)p.hidden=true;})();' +
+  '<' + '/script>';
+
 const BODY = SHELL.replace(
   '<div id="hos-reader"></div>',
-  '<div id="hos-reader"><div id="hos-prerender">\n' + prerender + '\n</div></div>'
+  '<div id="hos-reader"><div id="hos-prerender">\n' + prerender + '\n</div>' + PRERENDER_HIDE + '</div>'
 );
 if (BODY === SHELL) throw new Error('pre-render injection point not found');
 
