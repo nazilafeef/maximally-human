@@ -29,6 +29,12 @@ const write    = read('hos-write.js');
 const places   = read('hos-places.js');
 let app        = read('hos-app.js');
 
+/* added layers */
+const storage   = read('hos-storage.js');
+const dataUI    = read('hos-data-ui.js');
+const mobile    = read('hos-mobile.js');
+const RESPONSIVE = require('./responsive.js')(CSS);
+
 /* Cap the shell-wait retries so a missing anchor fails loudly instead of
    spinning forever. The shell is static now, so the first check should pass. */
 const RETRY_OLD = "  if (!document.getElementById('hos-reader') || !document.getElementById('hos-tree')) {\n    setTimeout(boot, 60);\n    return;\n  }";
@@ -51,8 +57,21 @@ if (!app.includes(RETRY_OLD)) throw new Error('boot retry block not matched');
 app = app.replace(RETRY_OLD, RETRY_NEW);
 console.log('boot retry capped at 25 attempts (~1.5s)');
 
+/* Hook the added layers into the engine's own boot tail, so they run once the
+   writing fields are mounted and the DOM they decorate exists. */
+const HOOK_OLD = `    } catch (e) { console.warn('[HOS] writing layer failed', e); }
+  }`;
+const HOOK_NEW = `    } catch (e) { console.warn('[HOS] writing layer failed', e); }
+  }
+  if (window.HOS_DATA_UI) window.HOS_DATA_UI(window.HOS);
+  if (window.HOS_MOBILE) window.HOS_MOBILE(window.HOS);
+  if (window.HOS_TODAY) window.HOS_TODAY(window.HOS);`;
+if (!app.includes(HOOK_OLD)) throw new Error('boot hook point not matched');
+app = app.replace(HOOK_OLD, HOOK_NEW);
+console.log('added layers hooked into boot');
+
 /* ---------- 4. storage shim ---------- */
-const STORAGE_SHIM = [
+const STORAGE_SHIM_UNUSED = [
   "/* Design supplied window.storage; a plain page does not. Same async",
   "   get/set/delete contract, backed by localStorage, so written text survives",
   "   a reload. Falls back to in-memory when localStorage is unavailable. */",
@@ -188,12 +207,14 @@ if (BODY === SHELL) throw new Error('pre-render injection point not found');
 const S = '<' + 'script data-cfasync="false">';
 const E = '<' + '/script>';
 const html = '<!DOCTYPE html>\n<html lang="en">\n<head>\n' + HEAD +
-  '\n<style>' + CSS + PRERENDER_CSS + '</style>\n</head>\n<body>\n' + BODY + '\n' +
-  S + STORAGE_SHIM + E + '\n' +
+  '\n<style>' + CSS + PRERENDER_CSS + RESPONSIVE + '</style>\n</head>\n<body>\n' + BODY + '\n' +
+  S + storage + E + '\n' +
   S + sections + E + '\n' +
   S + widgets + E + '\n' +
   S + write + E + '\n' +
   S + places + E + '\n' +
+  S + dataUI + E + '\n' +
+  S + mobile + E + '\n' +
   S + app + E + '\n' +
   '</body>\n</html>\n';
 
