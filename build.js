@@ -181,7 +181,11 @@ const BODY = SHELL.replace(
 );
 if (BODY === SHELL) throw new Error('pre-render injection point not found');
 
-const S = '<' + 'script>';
+/* data-cfasync="false" is Cloudflare's documented opt-out: Rocket Loader
+   leaves these scripts alone. The whole reader is inline scripts in a strict
+   dependency order, so any deferral or reordering breaks it. This makes the
+   page immune whatever the zone setting says. */
+const S = '<' + 'script data-cfasync="false">';
 const E = '<' + '/script>';
 const html = '<!DOCTYPE html>\n<html lang="en">\n<head>\n' + HEAD +
   '\n<style>' + CSS + PRERENDER_CSS + '</style>\n</head>\n<body>\n' + BODY + '\n' +
