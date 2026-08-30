@@ -7164,18 +7164,27 @@ window.HOS_PLACES = function (HOS, A) {
     }
     function closePop() {
       pop.hidden = true;
+      pop.__for = null;
       dropScrim();
     }
 
     if (isTouch()) {
-      /* The engine binds touchstart for a.xref only, and dismissal there
-         depends on :hover, which a finger never produces. Cover every
-         trigger, and give the sheet a scrim to tap away. */
+      /* The engine opens the popover from mouseover, plus a touchstart bound
+         to a.xref only — so on a phone the chips and clickable rows never
+         opened at all, and dismissal depended on :hover, which a finger cannot
+         produce. Drive the engine's own delegated mouseover handler from the
+         click (which every tap produces, on every trigger), then give the
+         sheet a scrim to tap away. */
       document.addEventListener('click', function (e) {
         var t = e.target.closest(TRIGGERS);
         if (t) {
-          // let the engine's own handler render, then dress it for touch
-          setTimeout(function () { if (!pop.hidden) addScrim(); }, 0);
+          if (pop.hidden || pop.__for !== t) {
+            e.preventDefault();
+            t.dispatchEvent(new MouseEvent('mouseover', { bubbles: true, cancelable: true }));
+            pop.__for = t;
+          }
+          // the engine debounces its render by 90ms
+          setTimeout(function () { if (!pop.hidden) addScrim(); }, 140);
           return;
         }
         if (pop.hidden) return;
