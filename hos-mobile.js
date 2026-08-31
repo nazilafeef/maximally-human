@@ -151,6 +151,84 @@
       });
     }
 
+    /* ── the gift link becomes top-bar chrome on phones ────────────────
+       The floating button overlapped the reading area on the first screen,
+       duplicated the sidebar footer entry, and needed opacity tuning to stay
+       out of the back pill's way. As a tool in the bar it is always visible,
+       never overlaps, and needs no tuning at all.
+
+       Built here but hidden above 600px by CSS, so nothing changes on tablet
+       or desktop and there is no resize handling to get wrong. */
+    var tools = document.querySelector('#hos-topbar .hos-tools');
+    if (tools && !document.getElementById('hos-gift-top')) {
+      var url = null;
+      var sideLink = document.querySelector('#hos-support-side a.is-primary') ||
+                     document.querySelector('.hos-support-link');
+      if (sideLink) url = sideLink.getAttribute('href');
+      if (url) {
+        var gift = document.createElement('a');
+        gift.id = 'hos-gift-top';
+        gift.className = 'hos-tool';           // one tool among several
+        gift.href = url;
+        gift.target = '_blank';
+        gift.rel = 'noopener noreferrer';
+        gift.title = 'Leave a gift';
+        gift.setAttribute('aria-label', 'Leave a gift');
+        gift.textContent = '♦';           // the glyph the sidebar already uses
+        // sits after the theme toggle, away from the menu and the jump tools
+        var theme = document.getElementById('hos-theme');
+        if (theme && theme.parentNode === tools) tools.insertBefore(gift, theme.nextSibling);
+        else tools.appendChild(gift);
+
+        /* same fallback as the floating button: a blocked popup leaves a
+           copyable link rather than a dead control */
+        gift.addEventListener('click', function (e) {
+          var w = null;
+          try { w = window.open(gift.href, '_blank', 'noopener,noreferrer'); } catch (err) {}
+          if (!w) {
+            e.preventDefault();
+            try {
+              navigator.clipboard.writeText(gift.href);
+              if (HOS.toast) HOS.toast('Opening was blocked — link copied');
+            } catch (err2) {
+              if (HOS.toast) HOS.toast('Opening was blocked — the link is in the sidebar');
+            }
+          }
+        });
+      }
+    }
+
+    /* ── phones: move the tools the bar cannot hold into the sidebar ────
+       At 375px the bar was already overflowing before the gift arrived —
+       Search, Jump, theme and help were rendering past the right edge. A
+       cramped bar is worse than a slightly longer menu, so the overlay tools
+       move into the contents drawer and keep their existing wiring by
+       clicking the original buttons. */
+    var tree = document.getElementById('hos-tree');
+    if (tree && !document.getElementById('hos-phone-tools')) {
+      var MOVED = [
+        ['hos-map-btn', '▦', 'The Architecture map'],
+        ['hos-rules-btn', '§', 'All seventeen Rules'],
+        ['hos-review-btn', '↻', 'Review cards'],
+        ['hos-help-btn', '?', 'Keyboard shortcuts']
+      ];
+      var box = document.createElement('div');
+      box.id = 'hos-phone-tools';
+      MOVED.forEach(function (m) {
+        var src = document.getElementById(m[0]);
+        if (!src) return;
+        var row = document.createElement('button');
+        row.className = 'hos-side-item';
+        row.innerHTML = '<span class="hos-side-glyph">' + m[1] + '</span><span>' + m[2] + '</span>';
+        row.addEventListener('click', function () {
+          closeDrawer();
+          setTimeout(function () { src.click(); }, 60);
+        });
+        box.appendChild(row);
+      });
+      if (box.children.length) tree.parentNode.insertBefore(box, tree);
+    }
+
     /* ── back pill and support button must not share a corner ────────── */
     var backEl = document.getElementById('hos-back');
     if (backEl) {

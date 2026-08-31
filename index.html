@@ -1305,20 +1305,46 @@
                      padding-bottom: calc(10px + var(--sab)); }
     .hos-wb-export button { min-height: 44px; }
 
-    /* the back pill clears the iOS home indicator */
+    /* the back pill clears the iOS home indicator — and on phones it is now
+       the only thing floating, so it competes with nothing */
     #hos-back {
       bottom: calc(16px + var(--sab)) !important;
       left: 16px !important; right: auto !important;
       min-height: 44px; padding: 10px 16px;
       max-width: calc(100vw - 32px);
     }
-    /* the floating support button must not sit under the back pill */
-    .hos-support-full, .hos-support {
-      bottom: calc(16px + var(--sab)) !important;
-      right: 16px !important; left: auto !important;
-      min-height: 44px;
+
+    /* ── the gift link moves into the bar on phones ──
+       The floating button overlapped the reading area on the first screen and
+       duplicated the sidebar footer entry, so it goes entirely here. */
+    #hos-support { display: none !important; }
+
+    /* The bar was already overflowing at 375px before the gift arrived: the
+       tools ran to x=579 inside a 375px viewport, putting Search, Jump, theme
+       and help off the right edge. These four move into the contents drawer,
+       and Jump goes with them — its ⌘K is meaningless without a keyboard and
+       Search covers finding things on a phone. */
+    #hos-topbar #hos-map-btn,
+    #hos-topbar #hos-rules-btn,
+    #hos-topbar #hos-review-btn,
+    #hos-topbar #hos-pal-btn,
+    #hos-topbar #hos-help-btn { display: none !important; }
+
+    /* display is set with the gift tool further down, so the two stay together */
+    #hos-phone-tools {
+      border-bottom: 1px solid var(--rule);
+      margin-bottom: 8px; padding-bottom: 8px;
     }
-    body.has-back .hos-support-full, body.has-back .hos-support { display: none !important; }
+
+    /* The brand yields first when the bar is tight, but tightening its
+       tracking buys back the ~20px it needs to stay whole at 375px rather
+       than reading "MAXIMALLY HU…". The ellipsis stays as the backstop. */
+    .hos-brand { min-width: 0; overflow: hidden; }
+    .hos-brand b {
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;
+      letter-spacing: 0.09em;
+    }
+    .hos-tools { flex: none; }
 
     /* prev/next stacks and stays tappable */
     .hos-prevnext { grid-template-columns: 1fr !important; gap: 8px; }
@@ -1464,6 +1490,9 @@
     .hos-side-count { font-size: 12px !important; }
     .hos-support-side-line { font-size: 12px !important; }
     #hos-reader { padding: 18px 16px 50vh; }
+    /* the last 10px the brand needs to stay whole on a 375px screen;
+       12px is the chrome floor, so it goes no smaller than this */
+    .hos-brand b { font-size: 12px !important; letter-spacing: 0.06em; }
     .hos-brand span { display: none; }
     #hos-crumb { display: none !important; }
   }
@@ -1550,6 +1579,28 @@
     #hos-overlay input, #hos-overlay .hos-input { font-size: 16px !important; min-height: 44px; }
     #hos-overlay .hos-result, #hos-overlay [data-jump] { min-height: 44px; }
     #hos-overlay .hos-result { font-size: 15px !important; }
+  }
+
+  /* ─────────── the top-bar gift tool ───────────
+     Phones only. It is chrome, not a call to action: same size, colour, hover
+     and active treatment as every other tool, no fill, no accent background,
+     no animation, no badge, not dismissible. */
+  /* defaults first, so the phone rule below is what wins on phones */
+  #hos-gift-top,
+  #hos-phone-tools { display: none; }
+  @media (max-width: 600px) {
+    #hos-gift-top {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 44px;
+      min-height: 44px;
+      text-decoration: none;
+    }
+    #hos-phone-tools { display: block; }
+  }
+  @media print {
+    #hos-gift-top, #hos-phone-tools { display: none !important; }
   }
 
   /* ─────────── inputs: 16px floor, last word in the cascade ───────────
@@ -7280,6 +7331,84 @@ window.HOS_PLACES = function (HOS, A) {
           }
         } catch (e) {}
       });
+    }
+
+    /* ── the gift link becomes top-bar chrome on phones ────────────────
+       The floating button overlapped the reading area on the first screen,
+       duplicated the sidebar footer entry, and needed opacity tuning to stay
+       out of the back pill's way. As a tool in the bar it is always visible,
+       never overlaps, and needs no tuning at all.
+
+       Built here but hidden above 600px by CSS, so nothing changes on tablet
+       or desktop and there is no resize handling to get wrong. */
+    var tools = document.querySelector('#hos-topbar .hos-tools');
+    if (tools && !document.getElementById('hos-gift-top')) {
+      var url = null;
+      var sideLink = document.querySelector('#hos-support-side a.is-primary') ||
+                     document.querySelector('.hos-support-link');
+      if (sideLink) url = sideLink.getAttribute('href');
+      if (url) {
+        var gift = document.createElement('a');
+        gift.id = 'hos-gift-top';
+        gift.className = 'hos-tool';           // one tool among several
+        gift.href = url;
+        gift.target = '_blank';
+        gift.rel = 'noopener noreferrer';
+        gift.title = 'Leave a gift';
+        gift.setAttribute('aria-label', 'Leave a gift');
+        gift.textContent = '♦';           // the glyph the sidebar already uses
+        // sits after the theme toggle, away from the menu and the jump tools
+        var theme = document.getElementById('hos-theme');
+        if (theme && theme.parentNode === tools) tools.insertBefore(gift, theme.nextSibling);
+        else tools.appendChild(gift);
+
+        /* same fallback as the floating button: a blocked popup leaves a
+           copyable link rather than a dead control */
+        gift.addEventListener('click', function (e) {
+          var w = null;
+          try { w = window.open(gift.href, '_blank', 'noopener,noreferrer'); } catch (err) {}
+          if (!w) {
+            e.preventDefault();
+            try {
+              navigator.clipboard.writeText(gift.href);
+              if (HOS.toast) HOS.toast('Opening was blocked — link copied');
+            } catch (err2) {
+              if (HOS.toast) HOS.toast('Opening was blocked — the link is in the sidebar');
+            }
+          }
+        });
+      }
+    }
+
+    /* ── phones: move the tools the bar cannot hold into the sidebar ────
+       At 375px the bar was already overflowing before the gift arrived —
+       Search, Jump, theme and help were rendering past the right edge. A
+       cramped bar is worse than a slightly longer menu, so the overlay tools
+       move into the contents drawer and keep their existing wiring by
+       clicking the original buttons. */
+    var tree = document.getElementById('hos-tree');
+    if (tree && !document.getElementById('hos-phone-tools')) {
+      var MOVED = [
+        ['hos-map-btn', '▦', 'The Architecture map'],
+        ['hos-rules-btn', '§', 'All seventeen Rules'],
+        ['hos-review-btn', '↻', 'Review cards'],
+        ['hos-help-btn', '?', 'Keyboard shortcuts']
+      ];
+      var box = document.createElement('div');
+      box.id = 'hos-phone-tools';
+      MOVED.forEach(function (m) {
+        var src = document.getElementById(m[0]);
+        if (!src) return;
+        var row = document.createElement('button');
+        row.className = 'hos-side-item';
+        row.innerHTML = '<span class="hos-side-glyph">' + m[1] + '</span><span>' + m[2] + '</span>';
+        row.addEventListener('click', function () {
+          closeDrawer();
+          setTimeout(function () { src.click(); }, 60);
+        });
+        box.appendChild(row);
+      });
+      if (box.children.length) tree.parentNode.insertBefore(box, tree);
     }
 
     /* ── back pill and support button must not share a corner ────────── */

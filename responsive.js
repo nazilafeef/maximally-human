@@ -223,20 +223,46 @@ ${cssFloorRules(baseCss, 14, 12, 4)}
                      padding-bottom: calc(10px + var(--sab)); }
     .hos-wb-export button { min-height: 44px; }
 
-    /* the back pill clears the iOS home indicator */
+    /* the back pill clears the iOS home indicator — and on phones it is now
+       the only thing floating, so it competes with nothing */
     #hos-back {
       bottom: calc(16px + var(--sab)) !important;
       left: 16px !important; right: auto !important;
       min-height: 44px; padding: 10px 16px;
       max-width: calc(100vw - 32px);
     }
-    /* the floating support button must not sit under the back pill */
-    .hos-support-full, .hos-support {
-      bottom: calc(16px + var(--sab)) !important;
-      right: 16px !important; left: auto !important;
-      min-height: 44px;
+
+    /* ── the gift link moves into the bar on phones ──
+       The floating button overlapped the reading area on the first screen and
+       duplicated the sidebar footer entry, so it goes entirely here. */
+    #hos-support { display: none !important; }
+
+    /* The bar was already overflowing at 375px before the gift arrived: the
+       tools ran to x=579 inside a 375px viewport, putting Search, Jump, theme
+       and help off the right edge. These four move into the contents drawer,
+       and Jump goes with them — its ⌘K is meaningless without a keyboard and
+       Search covers finding things on a phone. */
+    #hos-topbar #hos-map-btn,
+    #hos-topbar #hos-rules-btn,
+    #hos-topbar #hos-review-btn,
+    #hos-topbar #hos-pal-btn,
+    #hos-topbar #hos-help-btn { display: none !important; }
+
+    /* display is set with the gift tool further down, so the two stay together */
+    #hos-phone-tools {
+      border-bottom: 1px solid var(--rule);
+      margin-bottom: 8px; padding-bottom: 8px;
     }
-    body.has-back .hos-support-full, body.has-back .hos-support { display: none !important; }
+
+    /* The brand yields first when the bar is tight, but tightening its
+       tracking buys back the ~20px it needs to stay whole at 375px rather
+       than reading "MAXIMALLY HU…". The ellipsis stays as the backstop. */
+    .hos-brand { min-width: 0; overflow: hidden; }
+    .hos-brand b {
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;
+      letter-spacing: 0.09em;
+    }
+    .hos-tools { flex: none; }
 
     /* prev/next stacks and stays tappable */
     .hos-prevnext { grid-template-columns: 1fr !important; gap: 8px; }
@@ -248,6 +274,9 @@ ${cssFloorRules(baseCss, 14, 12, 4)}
 ${sizeRules(SIZE_MAP.phone, 4)}
 ${cssFloorRules(baseCss, 14, 12, 4)}
     #hos-reader { padding: 18px 16px 50vh; }
+    /* the last 10px the brand needs to stay whole on a 375px screen;
+       12px is the chrome floor, so it goes no smaller than this */
+    .hos-brand b { font-size: 12px !important; letter-spacing: 0.06em; }
     .hos-brand span { display: none; }
     #hos-crumb { display: none !important; }
   }
@@ -334,6 +363,28 @@ ${cssFloorRules(baseCss, 14, 12, 4)}
     #hos-overlay input, #hos-overlay .hos-input { font-size: 16px !important; min-height: 44px; }
     #hos-overlay .hos-result, #hos-overlay [data-jump] { min-height: 44px; }
     #hos-overlay .hos-result { font-size: 15px !important; }
+  }
+
+  /* ─────────── the top-bar gift tool ───────────
+     Phones only. It is chrome, not a call to action: same size, colour, hover
+     and active treatment as every other tool, no fill, no accent background,
+     no animation, no badge, not dismissible. */
+  /* defaults first, so the phone rule below is what wins on phones */
+  #hos-gift-top,
+  #hos-phone-tools { display: none; }
+  @media (max-width: 600px) {
+    #hos-gift-top {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 44px;
+      min-height: 44px;
+      text-decoration: none;
+    }
+    #hos-phone-tools { display: block; }
+  }
+  @media print {
+    #hos-gift-top, #hos-phone-tools { display: none !important; }
   }
 
   /* ─────────── inputs: 16px floor, last word in the cascade ───────────
