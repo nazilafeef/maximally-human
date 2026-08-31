@@ -231,6 +231,14 @@ function repaintCss(css) {
   if (!darkRe.test(css)) throw new Error('palette: dark block not found');
   css = css.replace(rootRe, rootNew).replace(darkRe, darkNew);
 
+  /* The floating support link renders at the resting opacity of its wrapper,
+     which was tuned for the old navy. At 0.62 the bronze computes to #DDCDBF
+     on paper — 1.33:1. The navy was already failing there at 3.63:1, so this
+     is a pre-existing fault the repaint made visible; 0.85 is the least
+     opacity that clears 4.5:1 in light mode, and it clears 6.3:1 in dark.
+     The transient scrolling fade is left alone. */
+  css = css.replace(/(\.hos-support-full \{[^}]*?)opacity: 0\.62;/, '$1opacity: 0.85;');
+
   // search-match highlight
   css = css.replace(/mark \{ background: #F3E2A9;/, 'mark { background: var(--marker);');
   css = css.replace(/\[data-theme="dark"\] mark \{ background: #4A431F;/,
