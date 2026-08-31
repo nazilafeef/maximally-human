@@ -162,6 +162,15 @@ ${cssFloorRules(baseCss, 14, 12, 4)}
       padding-bottom: calc(20px + var(--sab));
       width: min(302px, 86vw);
     }
+
+    /* A closed drawer is only translated off-canvas, so everything inside it
+       stays in the accessibility tree and the tab order — including the
+       support link in its footer, which then sits in the tab order next to
+       the visible floating one at 601–900px. visibility:hidden takes the
+       whole drawer out until it opens, and the delayed transition keeps the
+       slide animation intact on the way closed. */
+    #hos-sidebar { visibility: hidden; transition: transform .2s ease, visibility 0s .2s; }
+    body.drawer-open #hos-sidebar { visibility: visible; transition: transform .2s ease, visibility 0s 0s; }
     body.drawer-open #hos-scrim { inset: calc(52px + var(--sat)) 0 0; }
     #hos-reader { padding: 24px 20px 55vh; }
 

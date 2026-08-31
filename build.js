@@ -10,7 +10,37 @@ const cssStart = dc.indexOf('<style>');
 const cssEnd = dc.indexOf('</style>', cssStart);
 if (cssStart < 0 || cssEnd < 0) throw new Error('style block not found');
 const CSS_RAW = dc.slice(cssStart + '<style>'.length, cssEnd);
-const CSS = require('./palette.js').repaintCss(CSS_RAW);
+
+/* ---------- the floating support control ----------
+   Two fixes to the same control, neither of them a colour change, so they
+   live here rather than in the palette.
+
+   1. Redundancy. With the sidebar showing, its footer already carries the
+      same link, so the floating one faded to opacity 0.2. A 20%-opacity
+      anchor is still in the accessibility tree and still in the tab order —
+      Lighthouse scored it 1.34:1 — so it becomes display:none instead. That
+      removes it outright, and guarantees the two support links are never
+      focusable at the same time.
+
+   2. Resting opacity. The remaining 0.62 was tuned for the old navy; the
+      bronze computes to #DDCDBF on paper there. The navy was already failing
+      at 3.63:1, so this predates the repaint. 0.85 is the least that clears
+      4.5:1 in light mode, and it gives 6.3:1 in dark. The transient fade
+      while scrolling is left alone. */
+function patchSupportCss(css) {
+  const hideOld = 'body.sidebar-open .hos-support-full { opacity: 0.2; }';
+  const hideNew = 'body.sidebar-open .hos-support-full { display: none; }';
+  if (!css.includes(hideOld)) throw new Error('support redundancy rule not found');
+  css = css.replace(hideOld, hideNew);
+
+  const restRe = /(\.hos-support-full \{[^}]*?)opacity: 0\.62;/;
+  if (!restRe.test(css)) throw new Error('support resting opacity not found');
+  css = css.replace(restRe, '$1opacity: 0.85;');
+
+  return css;
+}
+
+const CSS = patchSupportCss(require('./palette.js').repaintCss(CSS_RAW));
 console.log('CSS bytes:', CSS_RAW.length, '-> repainted', CSS.length);
 
 /* ---------- 2. SHELL markup, unescaped from hos-shell.js ---------- */
