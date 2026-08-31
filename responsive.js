@@ -223,11 +223,13 @@ ${cssFloorRules(baseCss, 14, 12, 4)}
                      padding-bottom: calc(10px + var(--sab)); }
     .hos-wb-export button { min-height: 44px; }
 
-    /* the back pill clears the iOS home indicator — and on phones it is now
-       the only thing floating, so it competes with nothing */
+    /* The pill clears the iOS home indicator, and on phones it is now the only
+       thing floating, so it competes with nothing and stays centred as
+       designed. Do not set left/right here: the base rule centres it with
+       left:50% plus translateX(-50%), so an explicit left fights the transform
+       and pushes it off the screen edge. */
     #hos-back {
       bottom: calc(16px + var(--sab)) !important;
-      left: 16px !important; right: auto !important;
       min-height: 44px; padding: 10px 16px;
       max-width: calc(100vw - 32px);
     }
