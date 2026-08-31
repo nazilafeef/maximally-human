@@ -9,8 +9,9 @@ const dc = read('Maximally Human Reader.dc.html');
 const cssStart = dc.indexOf('<style>');
 const cssEnd = dc.indexOf('</style>', cssStart);
 if (cssStart < 0 || cssEnd < 0) throw new Error('style block not found');
-const CSS = dc.slice(cssStart + '<style>'.length, cssEnd);
-console.log('CSS bytes:', CSS.length);
+const CSS_RAW = dc.slice(cssStart + '<style>'.length, cssEnd);
+const CSS = require('./palette.js').repaintCss(CSS_RAW);
+console.log('CSS bytes:', CSS_RAW.length, '-> repainted', CSS.length);
 
 /* ---------- 2. SHELL markup, unescaped from hos-shell.js ---------- */
 const shellSrc = read('hos-shell.js');
@@ -24,16 +25,29 @@ console.log('SHELL bytes:', SHELL.length, '| dropped dynamic loader:', /hos-app\
 
 /* ---------- 3. modules ---------- */
 const sections = read('hos-sections.js');
-const widgets  = read('hos-widgets.js');
-const write    = read('hos-write.js');
-const places   = read('hos-places.js');
+let   widgets  = read('hos-widgets.js');
+let   write    = read('hos-write.js');
+let   places   = read('hos-places.js');
 let app        = read('hos-app.js');
+
+/* Some inline styles are written by the modules at runtime rather than baked
+   into HOS_DATA — the workbook table headers, for one — so the literals have
+   to be swept out of the module sources too. */
+const paletteMod = require('./palette.js');
+const sweep = src => {
+  Object.keys(paletteMod.MAP).forEach(old => {
+    if (paletteMod.MAP[old].toUpperCase() === old.toUpperCase()) return;
+    src = src.replace(new RegExp(old, 'gi'), paletteMod.MAP[old]);
+  });
+  return src;
+};
 
 /* added layers */
 const storage   = read('hos-storage.js');
 const dataUI    = read('hos-data-ui.js');
 const mobile    = read('hos-mobile.js');
 const todayView = read('hos-today.js');
+widgets = sweep(widgets); write = sweep(write); places = sweep(places); app = sweep(app);
 const RESPONSIVE = require('./responsive.js')(CSS);
 
 /* Service worker registration. Deliberately never touches
@@ -61,7 +75,7 @@ const RETRY_NEW = [
   "    if (boot.__tries > 25) {",
   "      console.error('[HOS] shell anchors #hos-reader / #hos-tree never appeared - aborting boot.');",
   "      var warn = document.createElement('pre');",
-  "      warn.style.cssText = 'padding:24px;font:14px/1.5 monospace;color:#7A2E2A';",
+  "      warn.style.cssText = 'padding:24px;font:14px/1.5 monospace;color:' + paletteMod.LIGHT.claret + '';",
   "      warn.textContent = 'The reader failed to start: shell markup is missing.';",
   "      document.body.appendChild(warn);",
   "      return;",
@@ -128,6 +142,22 @@ const STORAGE_SHIM_UNUSED = [
 const sandbox = {};
 (function (window) { eval(sections); })(sandbox);
 const D = sandbox.HOS_DATA;
+
+/* ---------- 4a. repaint ----------
+   Ink and burnished bronze. The document's colours are inline literals, so
+   this rewrites them rather than layering CSS overrides. */
+const palette = require('./palette.js');
+const paintCounts = palette.repaint(D);
+const chipCount = paintCounts.__chips;
+delete paintCounts.__chips;
+const painted = Object.values(paintCounts).reduce((a, b) => a + b, 0);
+console.log('colour literals repainted:', painted, '| evidence chips rebuilt:', chipCount);
+{
+  const leftover = palette.orphans(Object.values(D.html).join(' '));
+  if (Object.keys(leftover).length) {
+    throw new Error('old palette survives in the document: ' + JSON.stringify(leftover));
+  }
+}
 
 const anchors = require('./anchors.js');
 const anchorRes = anchors.inject(D);
@@ -232,8 +262,8 @@ const HEAD = [
   '<meta name="twitter:image" content="https://human.malebay.com/cover.png">',
   '<meta name="author" content="Nazil Afeef">',
   '<link rel="manifest" href="/manifest.webmanifest">',
-  '<meta name="theme-color" content="#F7F4EE" media="(prefers-color-scheme: light)">',
-  '<meta name="theme-color" content="#16171A" media="(prefers-color-scheme: dark)">',
+  '<meta name="theme-color" content="' + palette.LIGHT.paper + '" media="(prefers-color-scheme: light)">',
+  '<meta name="theme-color" content="' + palette.DARK.paper + '" media="(prefers-color-scheme: dark)">',
   '<link rel="icon" href="/icon-192.png" sizes="192x192">',
   '<link rel="apple-touch-icon" href="/icon-192.png">',
   '<meta name="apple-mobile-web-app-capable" content="yes">',

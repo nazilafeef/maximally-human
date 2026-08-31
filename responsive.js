@@ -329,7 +329,7 @@ ${cssFloorRules(baseCss, 14, 12, 4)}
       overflow-y: auto;
       border-radius: 12px 12px 0 0;
       padding: 18px 18px calc(18px + var(--sab));
-      box-shadow: 0 -8px 32px rgba(26,25,23,0.22);
+      box-shadow: 0 -8px 32px rgba(28,26,23,0.22);
       border: 1px solid var(--rule);
       border-bottom: none;
       z-index: 90;
@@ -341,7 +341,7 @@ ${cssFloorRules(baseCss, 14, 12, 4)}
     }
     #hos-pop-scrim {
       position: fixed; inset: 0; z-index: 89;
-      background: rgba(26,25,23,0.28);
+      background: rgba(28,26,23,0.30);
     }
   }
   @keyframes hos-sheet-up { from { transform: translateY(12px); opacity: .6 } to { transform: none; opacity: 1 } }
